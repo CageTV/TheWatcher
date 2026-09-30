@@ -6,4 +6,5 @@ set(headers ${headers}
     src/Watchdog.h
     src/Capture.h
     src/AddressLib.h
+    src/Events.h
 )

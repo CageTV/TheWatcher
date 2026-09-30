@@ -5,4 +5,5 @@ set(sources ${sources}
     src/Watchdog.cpp
     src/Capture.cpp
     src/AddressLib.cpp
+    src/Events.cpp
 )

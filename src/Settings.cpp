@@ -142,10 +142,30 @@ void Settings::Load()
 		addressLibIDs = GetB(a_sec, "baddresslibraryids", addressLibIDs);
 		threadSamples = GetI(a_sec, "ithreadsamples", threadSamples);
 		sampleIntervalMs = GetI(a_sec, "isampleintervalms", sampleIntervalMs);
+		groupThreadStacks = GetB(a_sec, "bgroupthreadstacks", groupThreadStacks);
+		skipDumpIfRecovered = GetB(a_sec, "bskipdumpifrecovered", skipDumpIfRecovered);
+
+		slowSampling = GetB(a_sec, "bslowsampling", slowSampling);
+		hitchSampleSec = GetF(a_sec, "fhitchsampleseconds", hitchSampleSec);
+		hitchReportSec = GetF(a_sec, "fhitchreportseconds", hitchReportSec);
+		loadGapSampleSec = GetF(a_sec, "floadgapsampleseconds", loadGapSampleSec);
+		slowSampleIntervalMs = GetI(a_sec, "islowsampleintervalms", slowSampleIntervalMs);
+		maxSlowReports = GetI(a_sec, "imaxslowreportspersession", maxSlowReports);
+
+		actorBreakdown = GetB(a_sec, "bactorbreakdown", actorBreakdown);
+		papyrusStats = GetB(a_sec, "bpapyrusstats", papyrusStats);
+		vramStats = GetB(a_sec, "bvramstats", vramStats);
+		statusFile = GetB(a_sec, "bstatusfile", statusFile);
+		eventsLog = GetB(a_sec, "beventslog", eventsLog);
+		equipEvents = GetB(a_sec, "bequipevents", equipEvents);
+		equipAllActors = GetB(a_sec, "bequipallactors", equipAllActors);
+		keepEventFiles = GetI(a_sec, "ikeepeventfiles", keepEventFiles);
 	};
 	readTuning("general");
 	readTuning("detection");
 	readTuning("capture");
+	readTuning("sampling");
+	readTuning("context");
 	if (mode == 2) {
 		readTuning("aggressive");
 	}
@@ -163,6 +183,12 @@ void Settings::Load()
 	keepStallCaptures = std::max(keepStallCaptures, 1);
 	threadSamples = std::clamp(threadSamples, 1, 20);
 	sampleIntervalMs = std::clamp(sampleIntervalMs, 10, 2000);
+	hitchSampleSec = std::clamp(hitchSampleSec, 0.1f, frameStallSec);
+	hitchReportSec = std::max(hitchReportSec, hitchSampleSec);
+	loadGapSampleSec = std::clamp(loadGapSampleSec, 0.5f, loadStallSec);
+	slowSampleIntervalMs = std::clamp(slowSampleIntervalMs, 20, 1000);
+	maxSlowReports = std::clamp(maxSlowReports, 0, 1000);
+	keepEventFiles = std::max(keepEventFiles, 1);
 }
 
 void Settings::LogValues() const
@@ -176,4 +202,9 @@ void Settings::LogValues() const
 		mainThreadStack, allThreadStacks, minidumpLevel, backupLogs, beep, flashWindow, alertOnWarning, ignoreUnfocused);
 	spdlog::info("Address Library IDs {}, thread sampling {} x {} ms ({}), dump via helper process {}", addressLibIDs, threadSamples,
 		sampleIntervalMs, allThreadStacks ? "all threads" : "main thread only", outOfProcessDump);
+	spdlog::info("Group identical stacks {}, skip dump if recovered {}", groupThreadStacks, skipDumpIfRecovered);
+	spdlog::info("Slow-episode sampling {}: hitch sample >= {:.2f}s, report >= {:.2f}s, load gap >= {:.1f}s, every {} ms, max {} reports",
+		slowSampling, hitchSampleSec, hitchReportSec, loadGapSampleSec, slowSampleIntervalMs, maxSlowReports);
+	spdlog::info("Context: actor breakdown {}, papyrus {}, vram {}, status file {}, events log {} (equip {}, all actors {})",
+		actorBreakdown, papyrusStats, vramStats, statusFile, eventsLog, equipEvents, equipAllActors);
 }

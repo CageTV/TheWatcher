@@ -1,8 +1,10 @@
 #include "PCH.h"
 #include "AddressLib.h"
 #include "Capture.h"
+#include "Events.h"
 #include "Monitor.h"
 #include "Settings.h"
+#include "Util.h"
 #include "Watchdog.h"
 
 // Printed in the build output, so you can see whether CommonLib was built with SE (1.5.97) support.
@@ -20,7 +22,7 @@ namespace
 {
 	void SetupLog()
 	{
-		const auto dir = SKSE::log::log_directory();
+		const auto dir = Util::LogDir();
 		if (!dir) {
 			return;
 		}
@@ -35,9 +37,18 @@ namespace
 
 	void OnMessage(SKSE::MessagingInterface::Message* a_msg)
 	{
-		if (a_msg && a_msg->type == SKSE::MessagingInterface::kDataLoaded) {
+		if (!a_msg) {
+			return;
+		}
+		if (a_msg->type == SKSE::MessagingInterface::kDataLoaded) {
+			if (Settings::Get().eventsLog) {
+				Events::Open();
+				Events::Write(std::format("SESSION START  The Watcher 1.1.2, game {}, pid {}", REL::Module::get().version().string(), GetCurrentProcessId()));
+			}
 			Monitor::RegisterEventSinks();
 			Watchdog::Start();
+		} else {
+			Monitor::NoteGameMessage(a_msg->type);  // (1.1) save load / new game / save: tags loading screens + events log
 		}
 	}
 }
@@ -49,7 +60,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 
 	const auto ver = REL::Module::get().version();
 	const char* runtime = ver.minor() >= 6 ? "AE (1.6.x)" : (ver.minor() == 5 ? "SE (1.5.x)" : "unsupported/untested (VR or other)");
-	spdlog::info("The Watcher 1.0.4, game {} - runtime {}", ver.string(), runtime);
+	spdlog::info("The Watcher 1.1.2, game {} - runtime {}", ver.string(), runtime);
 
 	// Plugins load on the game's main thread; the frame hook confirms this on its first call anyway
 	Monitor::Get().mainThreadId.store(GetCurrentThreadId());

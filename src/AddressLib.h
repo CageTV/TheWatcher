@@ -9,4 +9,7 @@ namespace AddressLib
 
 	// For an offset from SkyrimSE.exe's base: " -> 12345+0x1A" (nearest ID at or below), or "" if unavailable.
 	std::string Annotate(std::uintptr_t a_offset);
+
+	// (1.1) Same lookup as numbers: nearest ID at or below the offset, and the distance from it
+	bool Lookup(std::uintptr_t a_offset, std::uint64_t& a_id, std::uint64_t& a_delta);
 }

@@ -18,6 +18,7 @@
 #include <Windows.h>
 #include <DbgHelp.h>
 #include <Psapi.h>
+#include <ShlObj.h>
 #include <TlHelp32.h>
 
 #include <algorithm>

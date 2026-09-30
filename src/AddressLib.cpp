@@ -154,17 +154,29 @@ namespace AddressLib
 		return true;
 	}
 
-	std::string Annotate(std::uintptr_t a_offset)
+	bool Lookup(std::uintptr_t a_offset, std::uint64_t& a_id, std::uint64_t& a_delta)
 	{
 		if (!g_loaded || g_entries.empty()) {
-			return {};
+			return false;
 		}
 		auto it = std::upper_bound(g_entries.begin(), g_entries.end(), static_cast<std::uint64_t>(a_offset),
 			[](std::uint64_t v, const Entry& e) { return v < e.offset; });
 		if (it == g_entries.begin()) {
-			return {};
+			return false;
 		}
 		--it;
-		return std::format(" -> {}+0x{:X}", it->id, a_offset - it->offset);
+		a_id = it->id;
+		a_delta = a_offset - it->offset;
+		return true;
+	}
+
+	std::string Annotate(std::uintptr_t a_offset)
+	{
+		std::uint64_t id = 0;
+		std::uint64_t delta = 0;
+		if (!Lookup(a_offset, id, delta)) {
+			return {};
+		}
+		return std::format(" -> {}+0x{:X}", id, delta);
 	}
 }
